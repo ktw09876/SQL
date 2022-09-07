@@ -1,0 +1,45 @@
+create or replace function GetParam(p1 IN VARCHAR2, seq IN NUMBER)
+    RETURN VARCHAR2 -- 반환하는 데이터 타입을 써준다
+IS -- 선언부
+    pos1 number;
+    pos2 number;
+    mat_pos number;
+    val varchar2(100);
+    mat_val VARCHAR2(100);
+
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('GetParam called with' ||p1);
+
+    pos1:= INSTR(p1, '@', 1, seq); -- 첫 번째 횟수
+    If
+        pos1=0 THEN RETURN NULL; -- 만약 '@'이 없다면 null을 pos1에 대입
+    ELSE
+        pos1 := pos1+1; -- 그 외에는 pos1에 +1 --> '@'다음을 반환, pos1에 대입
+    END IF; --
+
+    pos2 := INSTR(p1, '@', 1, seq+1); -- 두 번째 부터
+    IF pos2 = 0 THEN -- 
+        pos2 := length(p1) + 1; -- 
+    END IF;
+
+    val := regexp_replace(SUBSTR(p1, pos1, pos2-pos1), 'or|and', '*', 1, 0, 'i'); 
+    -- p1의 처음 '@' 위치부터 그 다음 '@'까지 사이에서 'or' 또는 'and'가 나오면 '*'로 치환하겠다 
+    -- 검색위치는 처음부터 0번째 나오는 'or' 또는 'and', 모든 'or' 또는 'and'에 대해서 대체, 대소문자를 구분하지 않고 검색
+    -- 'or' 또는 'and''를 '*'로 치환한 p1을 변수 val에 대입
+    DBMS_OUTPUT.PUT_LINE('GetParam'||seq||'Value:'||val);
+
+    mat_pos := REGEXP_INSTR(val, '[+|*|!|#|$|%|^|&|*|(|)|+|=]') - 1;
+    -- 변수 val에서 '[+|*|!|#|$|%|^|&|*|(|)|+|=]'의 위치를 찾아 -1한 값을 변수 mat_pos에 대입
+
+    if mat_pos = -1 then -- '[+|*|!|#|$|%|^|&|*|(|)|+|=]'가 변수 val에 없으면
+        mat_val:= '[특문수문자 : X] '||SUBSTR(val, 1, length(val)); -- 변수 val 1번째부터 val길이까지 mat_val에 대입
+    else -- '[+|*|!|#|$|%|^|&|*|(|)|+|=]'가 변수 val에 있으면
+        mat_val:= '[특문수문자 : O] '||SUBSTR(val, 1, mat_pos); -- 변수 val 1번째부터 mat_pos까지 mat_val에 대입
+    end if;
+
+    DBMS_OUTPUT.PUT_LINE('GetParam'||seq||'last mat_pos:'||mat_pos);
+
+    RETURN mat_val;
+
+END GetParam
+;
