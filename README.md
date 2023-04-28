@@ -1,2 +1,2 @@
 # SQL
-실제 다뤘던 SQL 와 개인적으로 공부한 내용 입니다
+<img width="{100}" src="{https://user-images.githubusercontent.com/93371320/235063443-aecef9ba-0127-44bb-bc0e-0e883da04af7.png}"/>
