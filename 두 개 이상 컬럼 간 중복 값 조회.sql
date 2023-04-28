@@ -18,7 +18,7 @@ SELECT eqp_id, param_id, tag_name, tag_desc, full_address, param_code,
                           END
                     ELSE '확인 필요'
                   END
-            ELSE '확인 필요'
+            ELSE 'eqp_id 1개에 param_id 가 1개 = 정상'
          END AS msg
   FROM (
     SELECT A.*
@@ -29,7 +29,7 @@ SELECT eqp_id, param_id, tag_name, tag_desc, full_address, param_code,
             ,COUNT(1) OVER(PARTITION BY eqp_id, param_id, REPLACE(regexp_replace(tag_desc, 'PWR|파워', 'POWER'), '오버', 'OVER'), param_code) AS eid_pid_desc_pcode
       FROM tt_mapping A
 ) A
- WHERE 
-    eid_pid > 1 -- eqp_id 와 param_id 가 2개 이상인 대상만 조회
+-- WHERE 
+--    eid_pid > 1 -- eqp_id 와 param_id 가 2개 이상인 대상만 조회
 ;
 
