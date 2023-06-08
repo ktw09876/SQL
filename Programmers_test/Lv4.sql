@@ -44,4 +44,56 @@ ORDER BY
     2 DESC, 1 DESC
 ;
 
+-- Lv4 오프라인/온라인 판매 데이터 통합하기
+SELECT 
+      TO_CHAR(SALES_DATE, 'YYYY-MM-DD') AS sales_date
+    , PRODUCT_ID
+    , USER_ID
+    , SALES_AMOUNT
+  FROM (
+SELECT
+      SALES_DATE
+    , PRODUCT_ID
+    , USER_ID
+    , SALES_AMOUNT
+  FROM ONLINE_SALE 
+UNION ALL
+SELECT
+      SALES_DATE
+    , PRODUCT_ID
+    , NULL AS USER_ID
+    , SALES_AMOUNT
+  FROM OFFLINE_SALE  
+)
+ WHERE
+    TO_CHAR(sales_date, 'YYYY-MM') = '2022-03'
+ORDER BY 1, 2, 3
+;
+
+-- Lv4 년, 월, 성별 별 상품 구매 회원 수 구하기
+SELECT 
+      YEAR
+    , TO_NUMBER(MONTH) AS MONTH
+    , GENDER
+    , COUNT(DISTINCT USER_ID) AS USERS
+  FROM (
+    SELECT
+          TO_CHAR(B.SALES_DATE, 'YYYY') AS YEAR
+        , TO_CHAR(B.SALES_DATE, 'fmMM') AS MONTH -- '01, 02'와 같은 형태가 아닌 '1, 2'와 같은 형태로 출력
+        , A.GENDER
+        , B.USER_ID
+      FROM 
+        USER_INFO A
+        INNER JOIN ONLINE_SALE B ON A.USER_ID = B.USER_ID
+     WHERE
+        A.GENDER IS NOT NULL
+)
+GROUP BY
+      YEAR
+    , TO_NUMBER(MONTH) --  정렬을 위해서 다시 숫자형태로 변환
+    , GENDER
+ORDER BY 
+    1, 2, 3
+;
+
 
