@@ -110,3 +110,34 @@ SELECT DISTINCT
 ORDER BY YEAR ASC, MONTH ASC, GENDER ASC
 ;
 
+
+--Lv4 그룹별 조건에 맞는 식당 목록 출력하기
+SELECT 
+      MEMBER_NAME
+    , REVIEW_TEXT
+    , TO_CHAR(REVIEW_DATE, 'YYYY-MM-DD') AS REVIEW_DATE
+  FROM (
+    SELECT
+        COUNT(1) OVER(PARTITION BY MP.MEMBER_ID) AS ID_CNT -- COUNT(MP.MEMBER_ID)의 경우 WHERE절에 사용 불가
+      , MP.MEMBER_NAME
+      , RR.*
+      FROM 
+        MEMBER_PROFILE MP
+        INNER JOIN REST_REVIEW RR ON MP.MEMBER_ID = RR.MEMBER_ID
+)
+ WHERE ID_CNT = ( --COUNT(MEMBER_ID)가 가장 많이 작성한 리뷰 COUNT와 같은 대상
+    SELECT 
+        MAX(ID_CNT) --가장 많이 작성한 리뷰 COUNT
+      FROM (
+        SELECT
+              MEMBER_ID
+            , COUNT(MEMBER_ID) AS ID_CNT -- COUNT(1) OVER(PARTITION BY MEMBER_ID) 모두 사용할 수 있지만 서브쿼리에서 정렬을 한 번 더 하게되는 PARTITION BY는 피하는게 좋은거 같다 성능비교 해보고 싶다
+            -- , COUNT(1) OVER(PARTITION BY MEMBER_ID) AS ID_CNT              
+          FROM REST_REVIEW
+        GROUP BY MEMBER_ID
+    )
+)
+ORDER BY
+    3, 2
+;
+
