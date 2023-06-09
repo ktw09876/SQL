@@ -71,29 +71,42 @@ ORDER BY 1, 2, 3
 ;
 
 -- Lv4 년, 월, 성별 별 상품 구매 회원 수 구하기
-SELECT 
-      YEAR
-    , TO_NUMBER(MONTH) AS MONTH
-    , GENDER
-    , COUNT(DISTINCT USER_ID) AS USERS
-  FROM (
-    SELECT
-          TO_CHAR(B.SALES_DATE, 'YYYY') AS YEAR
-        , TO_CHAR(B.SALES_DATE, 'fmMM') AS MONTH -- '01, 02'와 같은 형태가 아닌 '1, 2'와 같은 형태로 출력
-        , A.GENDER
-        , B.USER_ID
-      FROM 
-        USER_INFO A
-        INNER JOIN ONLINE_SALE B ON A.USER_ID = B.USER_ID
-     WHERE
-        A.GENDER IS NOT NULL
-)
+-- GROUP BY 사용
+SELECT
+      TO_CHAR(B.SALES_DATE, 'YYYY') AS YEAR
+    , TO_NUMBER(TO_CHAR(B.SALES_DATE, 'fmMM')) AS MONTH -- '01, 02'와 같은 형태가 아닌 '1, 2'와 같은 형태로 출력
+    , A.GENDER
+    , COUNT(DISTINCT B.USER_ID) AS USERS
+  FROM 
+    USER_INFO A
+    INNER JOIN ONLINE_SALE B ON A.USER_ID = B.USER_ID
+ WHERE
+    A.GENDER IS NOT NULL
 GROUP BY
-      YEAR
-    , TO_NUMBER(MONTH) --  정렬을 위해서 다시 숫자형태로 변환
-    , GENDER
+      TO_CHAR(B.SALES_DATE, 'YYYY')
+    , TO_NUMBER(TO_CHAR(B.SALES_DATE, 'fmMM')) --  정렬을 위해서 다시 숫자형태로 변환
+    , A.GENDER
 ORDER BY 
     1, 2, 3
 ;
 
+-- 같은 문제 GROUP BY 미사용
+SELECT DISTINCT
+      YEAR
+    , MONTH
+    , T.GENDER
+    , COUNT(1) OVER(PARTITION BY T.YEAR,T.MONTH, T.GENDER) AS USERS 
+  FROM (
+    SELECT DISTINCT 
+          A.GENDER
+        , A.USER_ID
+        , TO_CHAR(B.SALES_DATE, 'YYYY') AS YEAR
+        , TO_NUMBER(TO_CHAR(B.SALES_DATE, 'fmMM')) AS MONTH
+      FROM 
+        USER_INFO A
+        INNER JOIN ONLINE_SALE B ON A.USER_ID = B.USER_ID 
+     WHERE A.GENDER IS NOT NULL
+  ) T
+ORDER BY YEAR ASC, MONTH ASC, GENDER ASC
+;
 

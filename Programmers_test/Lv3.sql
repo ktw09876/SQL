@@ -30,4 +30,43 @@ ORDER BY ID
 ;
 
 
+-- Lv3 즐겨찾기가 가장 많은 식당 정보 출력하기
+SELECT 
+    food_type,
+    rest_id,
+    rest_name,
+    favorites
+  FROM rest_info 
+ WHERE
+    (food_type, favorites) IN(
+        SELECT 
+            food_type, MAX(favorites)
+          FROM rest_info 
+        GROUP BY food_type
+    )
+ORDER BY food_type DESC
+;
+
+
+-- Lv3 없어진 기록 찾기
+SELECT B.animal_id, B.NAME
+  FROM animal_ins A, animal_outs B
+ WHERE A.animal_id(+) = B.animal_id
+   AND A.animal_id IS NULL
+ORDER BY animal_id
+;
+
+
+-- Lv3 카테고리 별 도서 판매량 집계하기
+SELECT
+    CATEGORY,
+    SUM(sales) AS total_sales
+  FROM book A, book_sales B
+ WHERE A.book_id = B.book_id
+   AND to_char(sales_date, 'YYYY-MM') = '2022-01'
+GROUP BY CATEGORY
+ORDER BY CATEGORY
+;
+
+
 
