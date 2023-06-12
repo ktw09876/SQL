@@ -46,46 +46,46 @@ ORDER BY
 
 -- Lv4 오프라인/온라인 판매 데이터 통합하기
 SELECT 
-      TO_CHAR(SALES_DATE, 'YYYY-MM-DD') AS sales_date
-    , PRODUCT_ID
-    , USER_ID
-    , SALES_AMOUNT
+      to_char(sales_date, 'YYYY-MM-DD') AS sales_date
+    , product_id
+    , user_id
+    , sales_amount
   FROM (
 SELECT
-      SALES_DATE
-    , PRODUCT_ID
-    , USER_ID
-    , SALES_AMOUNT
-  FROM ONLINE_SALE 
+      sales_date
+    , product_id
+    , user_id
+    , sales_amount
+  FROM online_sale 
 UNION ALL
 SELECT
-      SALES_DATE
-    , PRODUCT_ID
-    , NULL AS USER_ID
-    , SALES_AMOUNT
-  FROM OFFLINE_SALE  
+      sales_date
+    , product_id
+    , NULL AS user_id
+    , sales_amount
+  FROM offline_sale  
 )
  WHERE
-    TO_CHAR(sales_date, 'YYYY-MM') = '2022-03'
+    to_char(sales_date, 'YYYY-MM') = '2022-03'
 ORDER BY 1, 2, 3
 ;
 
 -- Lv4 년, 월, 성별 별 상품 구매 회원 수 구하기
 -- GROUP BY 사용
 SELECT
-      TO_CHAR(B.SALES_DATE, 'YYYY') AS YEAR
-    , TO_NUMBER(TO_CHAR(B.SALES_DATE, 'fmMM')) AS MONTH -- '01, 02'와 같은 형태가 아닌 '1, 2'와 같은 형태로 출력
-    , A.GENDER
-    , COUNT(DISTINCT B.USER_ID) AS USERS
+      to_char(B.sales_date, 'YYYY') AS YEAR
+    , TO_NUMBER(to_char(B.sales_date, 'fmMM')) AS MONTH -- '01, 02'와 같은 형태가 아닌 '1, 2'와 같은 형태로 출력
+    , A.gender
+    , COUNT(DISTINCT B.user_id) AS USERS
   FROM 
-    USER_INFO A
-    INNER JOIN ONLINE_SALE B ON A.USER_ID = B.USER_ID
+    user_info A
+    INNER JOIN online_sale B ON A.user_id = B.user_id
  WHERE
-    A.GENDER IS NOT NULL
+    A.gender IS NOT NULL
 GROUP BY
-      TO_CHAR(B.SALES_DATE, 'YYYY')
-    , TO_NUMBER(TO_CHAR(B.SALES_DATE, 'fmMM')) --  정렬을 위해서 다시 숫자형태로 변환
-    , A.GENDER
+      to_char(B.sales_date, 'YYYY')
+    , TO_NUMBER(to_char(B.sales_date, 'fmMM')) --  정렬을 위해서 다시 숫자형태로 변환
+    , A.gender
 ORDER BY 
     1, 2, 3
 ;
@@ -94,47 +94,47 @@ ORDER BY
 SELECT DISTINCT
       YEAR
     , MONTH
-    , T.GENDER
-    , COUNT(1) OVER(PARTITION BY T.YEAR,T.MONTH, T.GENDER) AS USERS 
+    , T.gender
+    , COUNT(1) OVER(PARTITION BY T.YEAR,T.MONTH, T.gender) AS USERS 
   FROM (
     SELECT DISTINCT 
-          A.GENDER
-        , A.USER_ID
-        , TO_CHAR(B.SALES_DATE, 'YYYY') AS YEAR
-        , TO_NUMBER(TO_CHAR(B.SALES_DATE, 'fmMM')) AS MONTH
+          A.gender
+        , A.user_id
+        , to_char(B.sales_date, 'YYYY') AS YEAR
+        , TO_NUMBER(to_char(B.sales_date, 'fmMM')) AS MONTH
       FROM 
-        USER_INFO A
-        INNER JOIN ONLINE_SALE B ON A.USER_ID = B.USER_ID 
-     WHERE A.GENDER IS NOT NULL
+        user_info A
+        INNER JOIN online_sale B ON A.user_id = B.user_id 
+     WHERE A.gender IS NOT NULL
   ) T
-ORDER BY YEAR ASC, MONTH ASC, GENDER ASC
+ORDER BY YEAR ASC, MONTH ASC, gender ASC
 ;
 
 
 --Lv4 그룹별 조건에 맞는 식당 목록 출력하기
 SELECT 
       MEMBER_NAME
-    , REVIEW_TEXT
-    , TO_CHAR(REVIEW_DATE, 'YYYY-MM-DD') AS REVIEW_DATE
+    , review_text
+    , to_char(review_date, 'YYYY-MM-DD') AS review_date
   FROM (
     SELECT
-        COUNT(1) OVER(PARTITION BY MP.MEMBER_ID) AS ID_CNT -- COUNT(MP.MEMBER_ID)의 경우 WHERE절에 사용 불가
-      , MP.MEMBER_NAME
-      , RR.*
+        COUNT(1) OVER(PARTITION BY mp.member_id) AS id_cnt -- COUNT(MP.MEMBER_ID)의 경우 WHERE절에 사용 불가
+      , mp.MEMBER_NAME
+      , rr.*
       FROM 
-        MEMBER_PROFILE MP
-        INNER JOIN REST_REVIEW RR ON MP.MEMBER_ID = RR.MEMBER_ID
+        member_profile mp
+        INNER JOIN rest_review rr ON mp.member_id = rr.member_id
 )
- WHERE ID_CNT = ( --COUNT(MEMBER_ID)가 가장 많이 작성한 리뷰 COUNT와 같은 대상
+ WHERE id_cnt = ( --COUNT(MEMBER_ID)가 가장 많이 작성한 리뷰 COUNT와 같은 대상
     SELECT 
-        MAX(ID_CNT) --가장 많이 작성한 리뷰 COUNT
+        MAX(id_cnt) --가장 많이 작성한 리뷰 COUNT
       FROM (
         SELECT
-              MEMBER_ID
-            , COUNT(MEMBER_ID) AS ID_CNT -- COUNT(1) OVER(PARTITION BY MEMBER_ID) 모두 사용할 수 있지만 서브쿼리에서 정렬을 한 번 더 하게되는 PARTITION BY는 피하는게 좋은거 같다 성능비교 해보고 싶다
+              member_id
+            , COUNT(member_id) AS id_cnt -- COUNT(1) OVER(PARTITION BY MEMBER_ID) 모두 사용할 수 있지만 서브쿼리에서 정렬을 한 번 더 하게되는 PARTITION BY는 피하는게 좋은거 같다 성능비교 해보고 싶다
             -- , COUNT(1) OVER(PARTITION BY MEMBER_ID) AS ID_CNT              
-          FROM REST_REVIEW
-        GROUP BY MEMBER_ID
+          FROM rest_review
+        GROUP BY member_id
     )
 )
 ORDER BY
@@ -144,25 +144,59 @@ ORDER BY
 
 --Lv4 서울에 위치한 식당 목록 출력하기
 SELECT
-      RI.REST_ID
-    , RI.REST_NAME
-    , RI.FOOD_TYPE
-    , RI.FAVORITES
-    , RI.ADDRESS
-    , ROUND(AVG(REVIEW_SCORE), 2) AS SCORE
+      RI.rest_id
+    , RI.rest_name
+    , RI.food_type
+    , RI.favorites
+    , RI.address
+    , round(AVG(review_score), 2) AS score
   FROM 
-    REST_INFO RI
-    INNER JOIN REST_REVIEW RR ON RI.REST_ID = RR.REST_ID
+    rest_info RI
+    INNER JOIN rest_review rr ON RI.rest_id = rr.rest_id
  WHERE
-    RI.ADDRESS LIKE '서울%'
+    RI.address LIKE '서울%'
 GROUP BY
-      RI.REST_ID
-    , RI.REST_NAME
-    , RI.FOOD_TYPE
-    , RI.FAVORITES
-    , RI.ADDRESS
+      RI.rest_id
+    , RI.rest_name
+    , RI.food_type
+    , RI.favorites
+    , RI.address
 ORDER BY
-    SCORE DESC, RI.FAVORITES DESC
+    score DESC, RI.favorites DESC
+;
+
+
+--Lv4 5월 식품들의 총매출 조회하기
+SELECT
+      fp.product_id
+    , fp.product_name
+    , SUM(fp.price * fo.amount) AS total_sales
+  FROM 
+    food_product fp
+    INNER JOIN food_order fo ON fp.product_id = fo.product_id
+ WHERE
+    to_char(fo.produce_date, 'MM') = '05'
+GROUP BY
+      fp.product_id
+    , fp.product_name
+ORDER BY
+    total_sales DESC, fp.product_id
+;
+
+--같은 문제 WITH절 사용
+WITH 생산품목 AS(
+    SELECT 
+          product_id
+        , SUM(amount) AS amount
+      FROM food_order
+     WHERE to_char(produce_date,'YYYY-MM') = '2022-05'
+    GROUP BY product_id
+)
+SELECT A.product_id, B.product_name, A.amount*B.price AS total_sales
+  FROM 
+    생산품목 A
+    INNER JOIN food_product B ON A.product_id = B.product_id
+ORDER BY A.amount*B.price DESC, product_id
 ;
 
 
