@@ -1,5 +1,5 @@
 SELECT eqp_id, param_id, tag_name, tag_desc, full_address, param_code,
-        CASE --
+        CASE 
             WHEN eid_pid > 1 -- eqp_id, param_id 가 같은 경우
             THEN CASE
                     WHEN eid_pid_desc > 1 -- eqp_id, param_id, desc. 가 같은 경우
@@ -18,7 +18,7 @@ SELECT eqp_id, param_id, tag_name, tag_desc, full_address, param_code,
                           END
                     ELSE '확인 필요'
                   END
-            ELSE '확인 필요'
+            ELSE 'eqp_id 1개에 param_id가 1개 = OK'
          END AS msg
   FROM ( --DESC.에 비정형화 되어있는 데이터는 replace로 같은 값으로 변환
     SELECT A.*
@@ -29,6 +29,6 @@ SELECT eqp_id, param_id, tag_name, tag_desc, full_address, param_code,
             ,COUNT(1) OVER(PARTITION BY eqp_id, param_id, REPLACE(regexp_replace(tag_desc, 'PWR|파워', 'POWER'), '오버', 'OVER'), param_code) AS eid_pid_desc_pcode --eqp_id, param_id, desc., param_code가 같은 경우
       FROM tt_mapping A
 ) A
- WHERE 
-    eid_pid > 1 -- eqp_id 와 param_id 가 2개 이상인 대상만 조회
+-- WHERE 
+--    eid_pid > 1 -- eqp_id 와 param_id 가 2개 이상인 대상만 조회
 ;
