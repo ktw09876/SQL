@@ -1,6 +1,7 @@
 /*
 처음으로 cross join에 대한 개념을 접해봤음
 group by count(*)할 때 null인 데이터를 count 0으로 출력하는 예제임
+outer join으로 행을 null로 출력한 후 해당 컬럼을 count(해당 컬럼) + group by하면 null인 행은 0으로 count된다
 cross join후 중복되는 행은 on절에서 join조건으로 제어한다.
 */
 --LeetCode SQL50 - Students and Examinations
