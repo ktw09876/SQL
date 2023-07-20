@@ -11,5 +11,5 @@ SELECT *
  WHERE
        MOD(ID, 2) = 1
    AND description <> 'boring'
-ORDER BY 1 DESC
+ORDER BY rating DESC
 ;
