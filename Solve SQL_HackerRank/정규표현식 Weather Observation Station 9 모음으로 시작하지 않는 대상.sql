@@ -1,4 +1,8 @@
--- 정규표현식 Weather Observation Station 9 모음으로 시작하지 않는 대상
+/* 
+정규표현식 Weather Observation Station 9 모음으로 시작하지 않는 대상
+!!! 모음으로 끝나지 않는 대상은? --> not regexp_like(city, '[a|e|i|o|u]$', 'i')
+*/
+
 select distinct
       city
   from station
